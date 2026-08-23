@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif-text: "Georgia", "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-serif-text);
+}
+
+/* Make KaTeX display blocks scroll horizontally instead of overflowing on mobile */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.25rem 0;
+}
+
+/* Thin, unobtrusive scrollbar for the sidebar and horizontal math */
+::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
