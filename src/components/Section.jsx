@@ -58,6 +58,17 @@ function Bank({ items }) {
   )
 }
 
+function Summary({ text }) {
+  return (
+    <div className="my-6 rounded-md border-l-4 border-emerald-400 bg-emerald-50 px-4 py-3">
+      <div className="mb-1 text-xs font-bold tracking-wide text-emerald-600 uppercase">
+        The Whole Story
+      </div>
+      <RichText text={text} className="leading-relaxed text-emerald-900" />
+    </div>
+  )
+}
+
 function Block({ block }) {
   switch (block.type) {
     case 'p':
@@ -82,6 +93,8 @@ function Block({ block }) {
       return <TrapBox text={block.text} />
     case 'bank':
       return <Bank items={block.items} />
+    case 'summary':
+      return <Summary text={block.text} />
     default:
       return null
   }
