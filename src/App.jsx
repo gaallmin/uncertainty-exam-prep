@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import ChapterView from './components/ChapterView'
+import ProfChrisProblemsView from './components/ProfChrisProblemsView'
 import { chapters } from './data/chapters'
 
 export default function App() {
@@ -22,7 +23,11 @@ export default function App() {
     <div className="flex min-h-screen flex-col bg-white md:flex-row">
       <Sidebar chapters={chapters} activeId={activeId} onSelect={handleSelect} visited={visited} />
       <main className="min-w-0 flex-1">
-        <ChapterView chapter={activeChapter} />
+        {activeChapter.custom === 'prof-chris-problems' ? (
+          <ProfChrisProblemsView />
+        ) : (
+          <ChapterView chapter={activeChapter} />
+        )}
       </main>
     </div>
   )

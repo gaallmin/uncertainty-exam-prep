@@ -69,7 +69,7 @@ function Summary({ text }) {
   )
 }
 
-function Block({ block }) {
+export function Block({ block }) {
   switch (block.type) {
     case 'p':
       return <RichText text={block.text} className="my-3 block leading-relaxed text-slate-700" />

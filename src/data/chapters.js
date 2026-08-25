@@ -1236,6 +1236,50 @@ export const chapters = [
         ],
       },
       {
+        id: 'skeleton-identifiability-tree',
+        title: 'Identifiability Decision Tree (skeleton)',
+        tags: ['exam'],
+        blocks: [
+          {
+            type: 'p',
+            text: 'Given: a system of ODEs, told which variables are observable.',
+          },
+          {
+            type: 'steps',
+            items: [
+              {
+                tex: '\\text{Write scalar ODE for the observable variable: differentiate observable} \\to \\text{substitute hidden } \\dot y \\to \\text{substitute hidden } y',
+                inline: true,
+              },
+              {
+                tex: '\\text{List all parameter combinations appearing as coefficients (e.g. } -(k_1+k_2),\\ k_1k_2,\\ p_1p_2,\\ AC,\\ AD\\text{)}',
+                inline: true,
+              },
+              {
+                tex: '\\text{Count: } n \\text{ parameters need } n \\text{ independent equations from coefficients + ICs}',
+                inline: true,
+              },
+              {
+                tex: '\\text{Check ICs separately — does } \\dot z(0) \\text{ give a new combination, or collapse to } 0{=}0 \\text{ (e.g. } x_{20}{=}0\\text{)?}',
+                inline: true,
+              },
+              {
+                tex: '\\text{IDENTIFIABLE} \\to \\text{"All } n \\text{ parameters appear as } n \\text{ independent combinations} \\to \\text{uniquely recoverable."}',
+                inline: true,
+              },
+              {
+                tex: '\\text{NOT IDENTIFIABLE} \\to \\text{"Only the [combination] is identifiable, not individual parameters — [why: product-only / IC collapses / absent]."}',
+                inline: true,
+              },
+              {
+                tex: '\\text{CONDITIONALLY} \\to \\text{"Identifiable only when [condition]} \\neq 0\\text{; when it } {=}0\\text{, the variable is constant and carries no information."}',
+                inline: true,
+              },
+            ],
+          },
+        ],
+      },
+      {
         id: 'skeleton-interpretation-bank',
         title: 'Physical Interpretation Bank',
         tags: ['interpret'],
@@ -1269,5 +1313,15 @@ export const chapters = [
         ],
       },
     ],
+  },
+
+  // ────────────────────── PROF CHRIS PROBLEMS (custom page) ──────────────────────
+  {
+    id: 'prof-chris-problems',
+    number: null,
+    navLabel: '📝 Prof Chris Problems',
+    title: 'Prof Chris Problems',
+    custom: 'prof-chris-problems',
+    sections: [],
   },
 ]
