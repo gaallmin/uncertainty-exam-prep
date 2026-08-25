@@ -385,10 +385,46 @@ const ex2 = {
     },
     { type: 'math', tex: '\\lambda y_0 - 0.8 = \\frac{8.5-0.8}{7.87\\times10^{-5}} \\approx 97{,}841 \\;\\implies\\; \\lambda y_0 \\approx 97{,}842' },
     { type: 'p', text: 'A genuine painting requires $\\lambda y_0$ in the range 0–200. 97,842 is vastly outside that range — conclusively a forgery.' },
+    { type: 'subheading', text: 'Part (b) — Back-calculate λy₀ the other way (multiply through by λ)' },
+    {
+      type: 'p',
+      text: 'Instead of dividing by a tiny exponential, multiply the solution through by $\\lambda$ first — this rearranges the same equation into a form where $\\lambda y_0$ can be isolated directly, without ever dividing by a near-zero number.',
+    },
+    {
+      type: 'steps',
+      items: [
+        {
+          text: 'Multiply the solution $y(t) = r/\\lambda + (y_0 - r/\\lambda)e^{-\\lambda(t-t_0)}$ through by λ.',
+          tex: '\\lambda y(t) = r + (\\lambda y_0 - r)e^{-\\lambda(t-t_0)}',
+        },
+        {
+          text: 'Rearrange to isolate the term containing $\\lambda y_0$.',
+          tex: '\\lambda y_0 - r = \\big(\\lambda y(t) - r\\big)\\cdot e^{\\lambda(t-t_0)}',
+        },
+        {
+          text: 'Solve for $\\lambda y_0$.',
+          tex: '\\lambda y_0 = r + \\big(\\lambda y(t) - r\\big)\\cdot e^{\\lambda(t-t_0)}',
+        },
+        {
+          text: 'Substitute the current values $\\lambda y = 8.5,\\ r = 0.8,\\ t-t_0 = 300,\\ \\lambda = 3.151\\times10^{-2}$, so $\\lambda(t-t_0) = 9.453$.',
+          tex: '\\lambda y_0 = 0.8 + (8.5-0.8)\\times e^{9.453} = 0.8 + 7.7\\times 12{,}735 \\approx 98{,}147',
+        },
+      ],
+    },
+    {
+      type: 'p',
+      text: 'This is the same physical quantity as Part (a) — the small difference from 97,842 is just rounding carried through the two different arrangements of the same algebra, not a different answer.',
+    },
+    { type: 'subheading', text: 'Part (c) — Is it a forgery?' },
+    {
+      type: 'p',
+      text: 'A genuine painting requires $\\lambda y_0 \\in (0, 200)$. The calculated value, $\\lambda y_0 \\approx 98{,}147$, is far outside that window — no honest age for the painting produces a value anywhere near this large, so the measurement is not just "suspicious", it is conclusive.',
+    },
   ],
   pattern:
     'Linear ODE $\\dot y + Py = Q \\to$ integrating factor $e^{\\int P\\,dt} \\to \\frac{d}{dt}(e^{Pt}y)=Qe^{Pt} \\to$ integrate. Back-calculation: rearrange the solution to isolate the unknown at the initial time. Always state the physical conclusion — marks are given for this.',
-  examSentence: '"λy₀ ≈ 97,842, far outside the plausible range of 0–200 for a genuine painting, so the painting is conclusively a forgery."',
+  examSentence:
+    '"λy₀ ≈ 97,842 (equivalently ≈98,147 via the alternative rearrangement) far exceeds the expected range of 0–200 for a 300-year-old painting, conclusively indicating that the painting is a forgery."',
   variantPrompt:
     'Give me a new integrating-factor back-calculation problem like the painting-forgery one, with different rate constants and measured values, and walk me through solving it and interpreting the physical conclusion.',
 }
@@ -611,10 +647,217 @@ const ex4q3 = {
     'Give me a new two-variable system like ẋ₁=p₁x₁x₂, ẋ₂=p₂x₂ where identifiability depends on whether an initial condition is zero or not, and walk me through both cases using the same reasoning.',
 }
 
+const sampleOde1d = {
+  id: 'sample-ode-1d',
+  source: 'SampleODE',
+  topic: 'Population Blow-up',
+  question:
+    'dP/dt = kP². If P(0) = P₀, find P(t).\n' +
+    'How long to double from P₀?\n' +
+    'What happens as t → 1/(kP₀)?',
+  problemType: 'Separable ODE with a quadratic growth term → finite-time blow-up.',
+  body: [
+    { type: 'subheading', text: 'Step 1 — Separate variables' },
+    { type: 'math', tex: '\\frac{dP}{P^2} = k\\,dt' },
+    { type: 'subheading', text: 'Step 2 — Integrate both sides' },
+    { type: 'math', tex: '\\int P^{-2}\\,dP = \\int k\\,dt \\;\\implies\\; -\\frac{1}{P} = kt + C' },
+    { type: 'subheading', text: 'Step 3 — Apply the IC P(0) = P₀' },
+    { type: 'math', tex: '-\\frac{1}{P_0} = C \\;\\implies\\; C = -\\frac{1}{P_0}' },
+    { type: 'subheading', text: 'Step 4 — Solve for P' },
+    {
+      type: 'math',
+      tex: '\\frac{1}{P} = \\frac{1}{P_0} - kt \\;\\implies\\; P(t) = \\frac{1}{\\tfrac{1}{P_0}-kt} = \\frac{P_0}{1-kP_0t}',
+    },
+    { type: 'subheading', text: 'Doubling time' },
+    {
+      type: 'p',
+      text: 'Set $P(t^*) = 2P_0$ and solve for $t^*$:',
+    },
+    {
+      type: 'math',
+      tex: '2P_0 = \\frac{P_0}{1-kP_0t^*} \\;\\implies\\; 1-kP_0t^* = \\tfrac12 \\;\\implies\\; t^* = \\frac{1}{2kP_0}',
+    },
+    { type: 'subheading', text: 'As t → 1/(kP₀)' },
+    {
+      type: 'p',
+      text: 'The denominator $1-kP_0t \\to 0^+$, so $P \\to \\infty$ — this is blow-up in *finite* time $T = 1/(kP_0)$, not the usual "approaches infinity as $t\\to\\infty$" behaviour.',
+    },
+    {
+      type: 'interpret',
+      text: "Unlike exponential growth ($\\dot P=kP$), which takes infinite time to reach infinity, quadratic growth ($\\dot P=kP^2$) reaches infinity in a finite, calculable time. This models explosive processes — runaway population growth or chain reactions — where the growth rate itself grows with the population, so growth accelerates growth.",
+    },
+    {
+      type: 'p',
+      text: 'General pattern: $\\dot P = kP^n$ for $n>1$ always gives finite-time blow-up, at $T = \\dfrac{1}{(n-1)kP_0^{\\,n-1}}$.',
+    },
+  ],
+  pattern:
+    'Separable ODE $dP/P^n = k\\,dt$ for $n>1$: integrates to $P(t) = P_0/(1-(n-1)kP_0^{n-1}t)^{1/(n-1)}$, which blows up at finite time $T=1/((n-1)kP_0^{n-1})$. Any power steeper than linear growth ($n>1$) blows up in finite time — only $n=1$ (exponential) takes infinite time to diverge.',
+  examSentence:
+    '"P(t) = P₀/(1-kP₀t) blows up at the finite time T = 1/(kP₀) — quadratic growth reaches infinity in finite time, unlike exponential growth."',
+  variantPrompt:
+    'Give me a new separable ODE of the form dP/dt = kPⁿ with n>1 (finite-time blow-up), and walk me through solving it, finding the doubling time, and identifying the blow-up time using the same pattern.',
+}
+
+const sampleOde2d = {
+  id: 'sample-ode-2d',
+  source: 'SampleODE',
+  topic: 'Tank Pollutant — Steady State & Inverse Time',
+  question:
+    'dC/dt = (5/100)(2 - C), C(0) = 0.\n' +
+    'Find C(t). Find steady state C(t→∞).\n' +
+    'Find time to reach 90% of steady state.',
+  problemType: 'Separable ODE (equivalent to integrating factor) → steady state → inverse time calculation.',
+  body: [
+    { type: 'subheading', text: 'Step 1 — Recognise this is separable' },
+    { type: 'math', tex: '\\frac{dC}{2-C} = \\frac{5}{100}\\,dt = \\frac{1}{20}\\,dt' },
+    { type: 'subheading', text: 'Step 2 — Integrate' },
+    { type: 'math', tex: '-\\ln|2-C| = \\frac{t}{20} + K \\;\\implies\\; 2-C = Ae^{-t/20}' },
+    { type: 'subheading', text: 'Step 3 — Apply the IC C(0)=0' },
+    { type: 'math', tex: '2 = A \\;\\implies\\; A = 2' },
+    { type: 'subheading', text: 'Step 4 — Solution' },
+    { type: 'math', tex: 'C(t) = 2\\big(1-e^{-t/20}\\big)' },
+    { type: 'subheading', text: 'Step 5 — Steady state' },
+    {
+      type: 'p',
+      text: 'As $t\\to\\infty$, $e^{-t/20}\\to 0$, so $C(\\infty) = 2$ mg/L — the concentration rises from 0 and asymptotes to the inflow concentration, which makes physical sense: in the long run the tank equilibrates with what is flowing in.',
+    },
+    { type: 'subheading', text: 'Step 6 — Time to reach 90% of steady state' },
+    {
+      type: 'steps',
+      items: [
+        {
+          text: 'Set C(t*) equal to 90% of the steady-state value.',
+          tex: '0.9\\times 2 = 2\\big(1-e^{-t^*/20}\\big)',
+        },
+        {
+          text: 'Simplify and isolate the exponential.',
+          tex: '0.9 = 1-e^{-t^*/20} \\;\\implies\\; e^{-t^*/20} = 0.1',
+        },
+        {
+          text: 'Take logs and solve for t*.',
+          tex: '-\\frac{t^*}{20} = \\ln(0.1) = -\\ln(10) \\;\\implies\\; t^* = 20\\ln(10) \\approx 46.05\\ \\text{minutes}',
+        },
+      ],
+    },
+  ],
+  pattern:
+    'Any ODE of the form $dC/dt = k(C_{eq}-C)$ integrates to $C(t) = C_{eq}(1-e^{-kt})$ — steady state is always $C_{eq}$, the equilibrium value the right-hand side vanishes at. Time to reach a fraction $f$ of steady state: $t = -\\ln(1-f)/k$. This is the same equilibrium-plus-decay template as Ex1 (Newton\'s cooling), just approaching the equilibrium from below instead of above.',
+  examSentence:
+    '"C(t) = 2(1-e^{-t/20}) approaches the steady state of 2 mg/L, reaching 90% of it at t = 20 ln(10) ≈ 46.05 minutes."',
+  variantPrompt:
+    'Give me a new tank/mixing-style separable ODE of the form dC/dt = k(C_eq - C), and walk me through finding C(t), the steady state, and the time to reach a given fraction of steady state, using the same pattern.',
+}
+
+const sampleOde3b = {
+  id: 'sample-ode-3b',
+  source: 'SampleODE',
+  topic: 'Nonlinear System — Three Fixed Points via Jacobian',
+  question:
+    'dx/dt = y, dy/dt = -x + x³.\n' +
+    'Find three fixed points. Use the Jacobian to classify each.',
+  problemType: '2D nonlinear (Hamiltonian-form) system → three fixed points → Jacobian classification at each.',
+  body: [
+    { type: 'subheading', text: 'Step 1 — Fixed points' },
+    {
+      type: 'p',
+      text: 'Set both equations to zero: $y=0$ from the first equation, and $-x+x^3=0 \\implies x(x^2-1)=0 \\implies x=0,1,-1$ from the second.',
+    },
+    { type: 'p', text: 'Three fixed points: $(0,0)$, $(1,0)$, $(-1,0)$.' },
+    { type: 'subheading', text: 'Step 2 — General Jacobian' },
+    {
+      type: 'math',
+      tex: 'J = \\begin{pmatrix} \\partial f/\\partial x & \\partial f/\\partial y \\\\ \\partial g/\\partial x & \\partial g/\\partial y \\end{pmatrix} = \\begin{pmatrix} 0 & 1 \\\\ -1+3x^2 & 0 \\end{pmatrix}',
+    },
+    { type: 'subheading', text: 'Step 3 — At (0,0)' },
+    {
+      type: 'math',
+      tex: 'J = \\begin{pmatrix} 0 & 1 \\\\ -1 & 0\\end{pmatrix}, \\quad \\text{tr}=0,\\ \\det = 0-(-1) = 1>0,\\ \\Delta = 0-4 = -4<0',
+    },
+    { type: 'p', text: '$\\text{tr}=0$, $\\det>0$ $\\implies$ CENTRE (neutrally stable).' },
+    { type: 'subheading', text: 'Step 4 — At (1,0)' },
+    {
+      type: 'math',
+      tex: 'J = \\begin{pmatrix} 0 & 1 \\\\ 2 & 0\\end{pmatrix}, \\quad \\text{tr}=0,\\ \\det = 0-2 = -2<0',
+    },
+    { type: 'p', text: '$\\det<0$ $\\implies$ SADDLE (unstable) — stop, no need to check the discriminant.' },
+    { type: 'subheading', text: 'Step 5 — At (−1,0)' },
+    { type: 'p', text: 'Same Jacobian as $(1,0)$ (it depends on $x^2$) $\\implies$ SADDLE (unstable).' },
+    {
+      type: 'interpret',
+      text: 'Systems of the form $\\dot x=y,\\ \\dot y=f(x)$ are Hamiltonian — they conserve a quantity analogous to energy, which is why $\\text{tr}(J)=0$ always, at every fixed point. That rules out spirals entirely: with zero trace the eigenvalues are either purely real (saddle) or purely imaginary (centre), never complex with nonzero real part. Never classify a zero-trace fixed point as a spiral.',
+    },
+  ],
+  pattern:
+    'For $\\dot x=y,\\ \\dot y=f(x)$ systems: tr(J) is always 0, so every fixed point is either a centre ($\\det>0$) or a saddle ($\\det<0$) — never a spiral or a node. Check $\\det$ first as always; if it is $>0$ here, it is automatically a centre, not a stable/unstable node, because the zero trace has already ruled those out.',
+  examSentence:
+    '"(0,0) is a centre since tr=0, det>0; (±1,0) are both saddles since det<0 — coexisting with a centre and two saddles is typical of a Hamiltonian double-well system."',
+  variantPrompt:
+    'Give me a new Hamiltonian-style system of the form ẋ=y, ẏ=f(x) with multiple fixed points, and walk me through finding them and classifying each via the Jacobian, using the tr(J)=0 shortcut.',
+}
+
+const sampleOde3c = {
+  id: 'sample-ode-3c',
+  source: 'SampleODE',
+  topic: 'Competition Model — Coexistence Instability',
+  question:
+    'dx/dt = x(3-x-2y), dy/dt = y(2-y-x).\n' +
+    'Find the coexistence fixed point (x>0, y>0).\n' +
+    'Is coexistence stable?',
+  problemType: '2D competition system → coexistence fixed point → saddle detection via det(J).',
+  body: [
+    { type: 'subheading', text: 'Step 1 — Coexistence fixed point' },
+    {
+      type: 'p',
+      text: 'From $\\dot x=0,\\ x>0$: $3-x-2y=0 \\implies x=3-2y$. From $\\dot y=0,\\ y>0$: $2-y-x=0 \\implies x=2-y$.',
+    },
+    {
+      type: 'math',
+      tex: '3-2y = 2-y \\;\\implies\\; y=1 \\;\\implies\\; x=1',
+    },
+    { type: 'p', text: 'Coexistence fixed point: $(1,1)$.' },
+    { type: 'subheading', text: 'Step 2 — Jacobian' },
+    {
+      type: 'p',
+      text: 'With $f=x(3-x-2y)=3x-x^2-2xy$ and $g=y(2-y-x)=2y-y^2-xy$:',
+    },
+    {
+      type: 'math',
+      tex: '\\frac{\\partial f}{\\partial x}=3-2x-2y,\\ \\ \\frac{\\partial f}{\\partial y}=-2x,\\ \\ \\frac{\\partial g}{\\partial x}=-y,\\ \\ \\frac{\\partial g}{\\partial y}=2-2y-x',
+    },
+    { type: 'p', text: 'Evaluate at $(1,1)$:' },
+    {
+      type: 'math',
+      tex: 'J = \\begin{pmatrix} -1 & -2 \\\\ -1 & -1 \\end{pmatrix}',
+    },
+    { type: 'subheading', text: 'Step 3 — Classify' },
+    {
+      type: 'math',
+      tex: '\\det(J) = (-1)(-1)-(-2)(-1) = 1-2 = -1 < 0',
+    },
+    { type: 'p', text: '$\\det(J)<0 \\implies$ SADDLE $\\implies$ coexistence is UNSTABLE.' },
+    {
+      type: 'interpret',
+      text: 'Coexistence being unstable means any small perturbation pushes the system toward one species dominating and the other going extinct — this is competitive exclusion: two species competing for the same limited resource cannot stably coexist, they can only pass through a coexistence point on the way to one winner.',
+    },
+  ],
+  pattern:
+    'Competition models with symmetric-looking coefficients often give a saddle at coexistence — det(J)<0 is the fastest check, and it means immediate exclusion of one species with no further calculation needed. Contrast with the SampleODE competition problem in Block 4, which is the identical system: this is worth recognising as a repeat pattern, not a new one.',
+  examSentence:
+    '"det(J) = -1 < 0, so the coexistence fixed point (1,1) is a saddle — coexistence is unstable, and the system moves toward competitive exclusion of one species."',
+  variantPrompt:
+    'Give me a new 2-species Lotka-Volterra competition model, ask me to find the coexistence fixed point and determine its stability via det(J), and walk me through it using the same det-first shortcut.',
+}
+
 export const problemGroups = [
   { id: 'block1', label: 'Block 1 — Class Test 1 (Separable ODE + Stability)', problems: [ct1a, ct1b] },
   { id: 'block2', label: 'Block 2 — Class Test 2 (System Reduction + Fitting)', problems: [ct2] },
   { id: 'block3', label: 'Block 3 — Class Test 3 (Sensitivity + MOL)', problems: [ct3a, ct3b] },
   { id: 'block4', label: 'Block 4 — Exercise Problems', problems: [ex1, ex2, ex4, sampleOde] },
   { id: 'block5', label: 'Block 5 — Previously Missing Problems', problems: [ex3q1, ex4q2, ex4q3] },
+  {
+    id: 'block6',
+    label: 'Block 6 — Sample ODE Questions (New Problems)',
+    problems: [sampleOde1d, sampleOde2d, sampleOde3b, sampleOde3c],
+  },
 ]

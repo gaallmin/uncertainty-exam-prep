@@ -58,6 +58,21 @@ function Bank({ items }) {
   )
 }
 
+function CodeBlock({ code, lang }) {
+  return (
+    <div className="my-4 overflow-x-auto rounded-lg bg-slate-900">
+      {lang && (
+        <div className="border-b border-slate-700 px-4 py-1.5 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+          {lang}
+        </div>
+      )}
+      <pre className="px-4 py-3 text-sm leading-relaxed text-slate-100">
+        <code>{code}</code>
+      </pre>
+    </div>
+  )
+}
+
 function Summary({ text }) {
   return (
     <div className="my-6 rounded-md border-l-4 border-emerald-400 bg-emerald-50 px-4 py-3">
@@ -95,6 +110,8 @@ export function Block({ block }) {
       return <Bank items={block.items} />
     case 'summary':
       return <Summary text={block.text} />
+    case 'code':
+      return <CodeBlock code={block.code} lang={block.lang} />
     default:
       return null
   }

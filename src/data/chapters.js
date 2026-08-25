@@ -1,5 +1,5 @@
 // All exam-prep content as structured data, consumed by ChapterView / Section.
-// Block types: p, subheading, math, steps, table, list, interpret, trap, bank, summary.
+// Block types: p, subheading, math, steps, table, list, interpret, trap, bank, summary, code.
 //
 // Explanation philosophy for every taught section: (1) state the problem and show
 // where the obvious approach fails, (2) surface the key idea as a question, not a
@@ -1309,6 +1309,341 @@ export const chapters = [
                 tex: '\\text{"Smaller }\\Delta x \\to \\text{better derivative approximation}\\to\\text{solution converges to true PDE solution."}',
               },
             ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ───────────────────────────── R CODE PATTERNS ─────────────────────────────
+  {
+    id: 'r-code',
+    number: null,
+    navLabel: '💻 R Code',
+    title: 'R Code Patterns',
+    sections: [
+      {
+        id: 'r-intro',
+        title: 'How to Use This Chapter',
+        tags: ['exam'],
+        blocks: [
+          {
+            type: 'p',
+            text: 'This tab covers every R-based question from the exercises. Each section is: what the code does, why it has to be written that way, and then the actual pattern to write — so you can adapt it under exam pressure instead of hunting for a remembered snippet.',
+          },
+        ],
+      },
+      {
+        id: 'r-ode-solvers',
+        title: 'Solving ODEs — ode() vs lsode()',
+        tags: ['how'],
+        blocks: [
+          { type: 'subheading', text: 'Why two solvers?' },
+          {
+            type: 'p',
+            text: "`ode()` works fine for ordinary systems. But some systems are *stiff* — different state variables change at wildly different speeds (fast biochemical binding next to slow decay, say). A generic explicit solver has to take steps small enough for the fastest variable, which means it crawls, or effectively freezes, when applied to the slow one too. `lsode()` uses an implicit method built for exactly this — it can take much larger steps without going unstable.",
+          },
+          {
+            type: 'interpret',
+            text: 'Rule of thumb: if the question says "stiff", or describes biochemical kinetics with rate constants of very different sizes, use `lsode()` instead of `ode()`. Ex5 says this outright — using `ode()` there is slow enough that "your machine may freeze".',
+          },
+          {
+            type: 'code',
+            lang: 'R',
+            code: `library(deSolve)
+
+# Define the ODE system
+model <- function(t, state, params) {
+  with(as.list(c(state, params)), {
+    dA <- -k1 * A
+    dB <- k1 * A - k2 * B
+    dC <- k2 * B
+    list(c(dA, dB, dC))
+  })
+}
+
+# Initial conditions and parameters
+state  <- c(A=1, B=0, C=0)
+params <- c(k1=0.5, k2=0.2)
+times  <- seq(0, 20, by=0.1)
+
+# Normal ODE
+out <- ode(y=state, times=times, func=model, parms=params)
+
+# Stiff ODE (Ex5)
+out <- lsode(y=state, times=times, func=model, parms=params)
+
+# Plot
+plot(out)`,
+          },
+          {
+            type: 'summary',
+            text: "ode() and lsode() solve the same kind of problem — the difference is entirely about numerical stability, not modelling. A stiff system punishes an explicit solver by forcing tiny steps everywhere just to keep the fast variable in check; lsode()'s implicit method sidesteps that restriction. Recognising \"stiff\" or \"biochemical kinetics\" in a question is your cue to reach for lsode() from the start.",
+          },
+        ],
+      },
+      {
+        id: 'r-parameter-fitting',
+        title: 'Parameter Fitting — nls() / Levenberg-Marquardt',
+        tags: ['how'],
+        blocks: [
+          { type: 'subheading', text: 'Why nls()?' },
+          {
+            type: 'p',
+            text: 'You have data and a model with unknown parameters. `nls()` finds the parameters that minimise the sum of squared residuals — this is Gauss-Newton (or Levenberg-Marquardt) in practice, the same machinery from Ch4, just called through a library function instead of hand-coded.',
+          },
+          {
+            type: 'p',
+            text: 'CT2-style example: fitting a predator-prey model to observed prey counts. The model itself is an ODE, so the "model function" R needs is not a formula — it is "solve the ODE, then read off the values at the observation times".',
+          },
+          {
+            type: 'code',
+            lang: 'R',
+            code: `library(deSolve)
+library(minpack.lm)   # for nlsLM (Levenberg-Marquardt)
+
+# Data from CT2
+texp <- c(0,2,4,6,8,10,12,14,16,18,20)
+xexp <- c(1.0,0.046,0.086,0.29,1.1,3.8,0.17,0.048,0.12,0.44,1.62)
+
+# Model function: solve ODE, return x at texp
+model_pred <- function(params) {
+  A <- params[1]; B <- params[2]
+  C <- params[3]; D <- params[4]
+
+  ode_fn <- function(t, state, p) {
+    x <- state[1]; y <- state[2]
+    list(c(A*x - B*x*y, -C*y + D*x*y))
+  }
+
+  out <- ode(y=c(x=1, y=1), times=texp, func=ode_fn, parms=NULL)
+  out[,"x"]
+}
+
+# Residual function for nlsLM
+resid_fn <- function(params) xexp - model_pred(params)
+
+# Fit with initial guess from CT2
+fit <- nlsLM(xexp ~ model_pred(c(A,B,C,D)),
+             start=list(A=0.5, B=1, C=1.5, D=0.5))
+summary(fit)`,
+          },
+          {
+            type: 'interpret',
+            text: 'Key output from CT2: A=0.6538, B=1.319, C=1.018, D=1.018 — the same numbers used in the Ch3/CT2 identifiability worked example, which is why that section could say the dynamics were "periodic": these are the fitted values that were then simulated forward.',
+          },
+          {
+            type: 'summary',
+            text: "nls()/nlsLM() is not a different technique from Gauss-Newton — it is the same minimise-the-sum-of-squared-residuals problem, just with R doing the iteration for you. The only nonstandard part is that the 'model' isn't a closed-form formula: it is a function that solves an ODE internally and returns the predicted values at the observation times, because that is what an ODE-based model actually is.",
+          },
+        ],
+      },
+      {
+        id: 'r-forced-system',
+        title: 'Ex3 — Consumer Model (Forced ODE System)',
+        tags: ['how'],
+        blocks: [
+          { type: 'subheading', text: 'Why this one is different' },
+          {
+            type: 'p',
+            text: 'Every system so far has been autonomous — the right-hand side depends only on the state, not on time directly. This one is non-autonomous: $C(t)$ is a forcing function that changes over time on its own. That matters because the system cannot settle into a true equilibrium while the thing driving it is still changing — "steady state" only makes sense once the forcing itself has stopped moving.',
+          },
+          {
+            type: 'code',
+            lang: 'R',
+            code: `library(deSolve)
+
+consumer_model <- function(t, state, params) {
+  B <- state[1]; M <- state[2]
+  a <- params["a"]; b <- params["b"]
+  alpha <- params["alpha"]; beta <- params["beta"]
+  gamma <- params["gamma"]
+
+  # C(t) -- swap between cases:
+  C <- 1            # Case (a): constant advertising
+  # C <- exp(-t)   # Case (b): decaying advertising
+
+  dB <- b * (M - beta*B)
+  dM <- a * (B - alpha*M) + gamma*C
+  list(c(dB, dM))
+}
+
+params <- c(a=1, b=1, alpha=2, beta=1, gamma=1)
+state  <- c(B=0, M=0)
+times  <- seq(0, 20, by=0.1)
+
+out <- ode(y=state, times=times, func=consumer_model, parms=params)
+plot(out[,"time"], out[,"B"], type="l",
+     xlab="Time", ylab="Buying level B(t)")`,
+          },
+          {
+            type: 'interpret',
+            text: 'Case (a), $C=1$ (constant advertising): $B(t)$ rises and stabilises at a steady level — a constant push sustains a constant response. Case (b), $C=e^{-t}$ (decaying advertising): $B(t)$ rises then falls back toward zero — once the forcing decays away, there is nothing left to sustain the buying level, and it decays too.',
+          },
+          {
+            type: 'summary',
+            text: "The reason this system needs care is that C(t) is written into the code as an explicit function of t, not a constant or a state variable — swap that one line and the entire long-run behaviour changes, from settling at a fixed level to decaying to zero. That is the signature of a forced, non-autonomous system: the model's fate is tied to what the forcing function does as t grows, not just to the model's own internal structure.",
+          },
+        ],
+      },
+      {
+        id: 'r-brusselator',
+        title: 'Ex6 — Brusselator (ReacTran, Reaction-Diffusion PDE)',
+        tags: ['how'],
+        blocks: [
+          { type: 'subheading', text: 'Why ReacTran, not raw MOL by hand' },
+          {
+            type: 'p',
+            text: 'The Brusselator PDE has both a diffusion term and reaction terms. You could hand-code the central-difference formula from Ch6 for every grid point yourself — but `ReacTran` already does that spatial discretisation, including boundary conditions, so all you have to define is the reaction physics; the package handles turning the diffusion term into the right system of ODEs.',
+          },
+          {
+            type: 'code',
+            lang: 'R',
+            code: `library(deSolve)
+library(ReacTran)
+
+N  <- 100              # number of spatial grid points
+xgrid <- setup.grid.1D(x.up=0, x.down=1, N=N)
+x <- xgrid$x.mid
+
+D1 <- 0.02; D2 <- 0.02
+
+brusselator <- function(t, state, params) {
+  X1 <- state[1:N]
+  X2 <- state[(N+1):(2*N)]
+
+  # Diffusion terms (ReacTran handles BCs)
+  dX1_diff <- tran.1D(C=X1, D=D1, C.up=1, C.down=1, dx=xgrid)$dC
+  dX2_diff <- tran.1D(C=X2, D=D2, C.up=3, C.down=3, dx=xgrid)$dC
+
+  # Reaction terms
+  dX1 <- dX1_diff + 1 + X1^2*X2 - 4*X1
+  dX2 <- dX2_diff + 3*X1 - X1^2*X2
+
+  list(c(dX1, dX2))
+}
+
+# Initial conditions
+X1_0 <- 1 + sin(2*pi*x)
+X2_0 <- rep(3, N)
+state0 <- c(X1_0, X2_0)
+
+times <- seq(0, 10, by=0.1)
+out <- ode.1D(y=state0, times=times, func=brusselator,
+              parms=NULL, nspec=2)`,
+          },
+          {
+            type: 'interpret',
+            text: 'Turing patterns emerge from the interplay between reaction and diffusion: $X_1$ (activator) and $X_2$ (inhibitor) develop spatial structure — stripes or spots — purely from the coupling between local reaction kinetics and neighbour-to-neighbour diffusion. With $D_1=D_2=0.02$ diffusion is equal for both species; making the diffusion rates unequal is what typically produces sharper, stronger patterns.',
+          },
+          {
+            type: 'summary',
+            text: 'The Brusselator setup is Method of Lines exactly as derived in Ch6 — space discretised, time left continuous, the PDE reduced to a large ODE system — but ReacTran automates the tedious part, the finite-difference-plus-boundary-conditions machinery for the diffusion term, so your own code only has to encode the reaction terms that make this problem chemically or biologically interesting.',
+          },
+        ],
+      },
+      {
+        id: 'r-schrodinger',
+        title: 'Ex6 — Schrödinger Equation (Complex PDE)',
+        tags: ['how'],
+        blocks: [
+          { type: 'subheading', text: 'Why this one needs special handling' },
+          {
+            type: 'p',
+            text: "This PDE is complex-valued, and R's ODE solvers work with real numbers. The fix is the same trick used anywhere complex arithmetic meets a real-only tool: split $u$ into real and imaginary parts, track them as two separate real state variables, and only recombine them into a complex number inside the derivative function where you actually need complex arithmetic.",
+          },
+          {
+            type: 'code',
+            lang: 'R',
+            code: `library(deSolve)
+
+N  <- 500
+x  <- seq(-20, 80, length=N)
+dx <- x[2] - x[1]
+alpha <- 0.5; gamma <- 1.1; c_val <- 1
+
+# Initial condition (soliton)
+u0 <- sqrt(2*alpha/gamma) * exp(1i * 0.5 * c_val * x) *
+      (1/cosh(sqrt(alpha) * x))
+
+schrodinger <- function(t, state, params) {
+  # Reconstruct complex u from real/imag parts
+  u <- state[1:N] + 1i * state[(N+1):(2*N)]
+
+  # Second derivative (finite difference)
+  d2u <- c(0, diff(diff(u)), 0) / dx^2
+
+  # RHS of PDE
+  du <- 1i * d2u + 1i * gamma * abs(u)^2 * u
+
+  list(c(Re(du), Im(du)))
+}
+
+state0 <- c(Re(u0), Im(u0))
+times  <- seq(0, 40, by=0.5)
+out    <- ode(y=state0, times=times, func=schrodinger, parms=NULL)`,
+          },
+          {
+            type: 'interpret',
+            text: 'A soliton is a solution that keeps its shape as it propagates — the physical check is to plot $|u|^2$ at different times and confirm the profile does not spread out or distort. The strongest version of this test: run two solitons toward each other and check that they pass through one another and emerge unchanged, which is the defining signature of a true soliton solution rather than an ordinary wave packet that just happens to look similar at $t=0$.',
+          },
+          {
+            type: 'summary',
+            text: "The only nonstandard step here is bookkeeping: because R's solver expects a real vector, you store Re(u) and Im(u) as separate halves of the state vector, reassemble them into a complex u only inside the derivative function, and split the complex result back into real and imaginary parts before returning it. Everything else — finite-difference the spatial derivative, hand the system to ode() — is the same Method of Lines pattern as every other PDE in this course.",
+          },
+        ],
+      },
+      {
+        id: 'r-wave-ct3',
+        title: 'CT3 — Wave Equation',
+        tags: ['exam'],
+        blocks: [
+          {
+            type: 'p',
+            text: 'This is the R implementation of the wave-equation reduction from Ch6: introduce velocity $v = \\partial u/\\partial t$ to make it first-order in time, then apply the same central-difference formula to the spatial second derivative.',
+          },
+          {
+            type: 'code',
+            lang: 'R',
+            code: `library(deSolve)
+
+N  <- 200
+x  <- seq(-100, 100, length=N)
+dx <- x[2] - x[1]
+c_val <- 1; lambda <- 0.02
+
+wave <- function(t, state, params) {
+  u <- state[1:N]
+  v <- state[(N+1):(2*N)]  # v = du/dt
+
+  # Second derivative of u w.r.t. x
+  d2u <- c(0, diff(diff(u)), 0) / dx^2
+
+  du <- v
+  dv <- c_val^2 * d2u
+
+  list(c(du, dv))
+}
+
+# Initial conditions: two Gaussian pulses
+u0 <- exp(-lambda*(x-30)^2) + exp(-lambda*(x+30)^2)
+v0 <- rep(0, N)           # du/dt = 0 at t=0
+state0 <- c(u0, v0)
+
+times <- seq(0, 60, by=0.5)
+out   <- ode(y=state0, times=times, func=wave, parms=NULL)
+
+# Convergence check (CT3 Q2a)
+# Run with dx=5, 0.5, 0.05 and compare max(|numerical - analytic|)
+# Expected: 10x smaller dx -> ~100x smaller error (2nd order accuracy)`,
+          },
+          {
+            type: 'interpret',
+            text: 'The two pulses start at $x=\\pm 30$ and travel at speed $c=1$, so they meet at $x=0$ at $t=30$ — a direct consequence of distance over speed, not something you need to run the simulation to predict. And because the central-difference formula drops an $O(\\Delta x^2)$ error term, a tenfold reduction in $\\Delta x$ should produce roughly a hundredfold reduction in error; confirming that in the output is what verifies the code is actually second-order accurate, not just "looks plausible".',
+          },
+          {
+            type: 'summary',
+            text: "This is nothing more than the second-order-in-time reduction from Ch6 typed into R: split ü=c²u_xx into u̇=v and v̇=c²u_xx, discretise the spatial second derivative with the same central-difference formula used everywhere else in this course, and let ode() handle the time integration. The two things worth checking afterward are physical (do the pulses meet where speed×time predicts?) and numerical (does the error shrink at the Δx² rate the derivation promised?).",
           },
         ],
       },
