@@ -8,6 +8,14 @@
 // (5) close with a plain-English "Whole Story" paragraph and no equations.
 
 export const chapters = [
+  // ───────────────────────────── CRAM ─────────────────────────────
+  {
+    id: 'cram',
+    navLabel: '🚨 3시간 크램',
+    title: '3시간 크램',
+    custom: 'cram',
+    sections: [],
+  },
   // ───────────────────────────── CH1 ─────────────────────────────
   {
     id: 'ch1',
